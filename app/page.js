@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import styles from './page.module.scss';
 import Image from 'next/image';
@@ -6,8 +6,8 @@ import { useTransform, useScroll, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import Lenis from '@studio-freight/lenis';
 import useDimension from './useDimension';
-import { ArrowUpRight, Circle } from 'lucide-react';
-import { Circles } from "@/components/ui/circle";
+import useMousePosition from './utils/useMousePosition';
+import { ArrowUpRight } from 'lucide-react';
 
 const images = Array.from({ length: 12 }, (_, i) => `${i + 1}.jpg`);
 
@@ -27,7 +27,12 @@ export default function Home() {
     offset: ['start end', 'end start']
   });
   
-  const y = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
+
+  const [isHovered, setIsHovered] = useState(false);
+  const { x, y } = useMousePosition();
+  const size = isHovered ? 400 : 100;
+  
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3]);
   const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25]);
   const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
@@ -41,9 +46,6 @@ export default function Home() {
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
-    return () => {
-      // Optionally: lenis.destroy();
-    };
   }, []);
 
   useEffect(() => {
@@ -62,40 +64,47 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-    
-      <motion.section 
-        className={styles.hero}
-        style={{ position: 'relative', overflow: 'hidden' }}
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-      >
-      
-        <div className="absolute inset-0 bg-[#100C08]">
-          <Circles
-            direction="diagonal"
-            speed={0.5}
-            squareSize={40}
-            borderColor="#333" 
-            hoverFillColor="#222"
-          />
-        </div>
-      
-        <div className="relative z-10">
-          <h1 className="text-white">Parallax Scroll is Awesome</h1>
-        </div>
-      </motion.section>
+
+<section className={styles.hero}>
+  {/* Underlying hero content */}
+  <div className={styles.heroContent}>
+    <h1 
+      className="text-white text-6xl font-bold"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      ..........Parallax is Cool..........
+    </h1>
+  </div>
+
+  <motion.div 
+    className={styles.heroMask}
+    animate={{
+      WebkitMaskPosition: `${x - size / 2}px ${y - size / 2}px`,
+      WebkitMaskSize: `${size}px`
+    }}
+    transition={{ type: "tween", ease: "backOut" }}
+  >
+    <div className={styles.maskText}>
+      <h1 className="text-black text-6xl font-bold">
+        ..........This is even cooler!..........
+      </h1>
+    </div>
+  </motion.div>
+</section>
+
       
      
       <div ref={container} className={styles.gallery}>
-        <Column images={[images[9], images[1], images[2]]} y={y} />
+        <Column images={[images[9], images[1], images[2]]} y={y1} />
         <Column images={[images[5], images[4], images[3]]} y={y2} />
         <Column images={[images[6], images[7], images[8]]} y={y3} />
         <Column images={[images[0], images[10], images[11]]} y={y4} />
       </div>
       
+    
       <div className={styles.spacer}>
-        <div className={styles.footerWrapper} style={{ position: 'relative' }}>
+        <div className={styles.footerWrapper}>
           <footer ref={footerRef} className="py-20 px-6 md:px-20" id="contact">
             <div className="max-w-7xl mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-20">
@@ -155,7 +164,6 @@ export default function Home() {
                 <div className="text-left w-full md:w-1/3 text-white">
                   Built with Nextjs and deployed with Vercel.
                 </div>
-               
                 <div className="text-right w-full md:w-1/3 text-white">
                   Text is set in the DOTO typeface.
                 </div>
